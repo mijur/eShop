@@ -49,6 +49,18 @@ public static class CatalogApi
             .WithDescription("Get the picture for a catalog item")
             .WithTags("Items");
 
+        // Routes for text search.
+        v2.MapGet("/search", SearchCatalog)
+            .WithName("SearchCatalog")
+            .WithSummary("Search catalog items")
+            .WithDescription("Search for items by name or description with optional category filter")
+            .WithTags("Search");
+        v2.MapGet("/search/suggestions", GetSearchSuggestions)
+            .WithName("GetSearchSuggestions")
+            .WithSummary("Get search autocomplete suggestions")
+            .WithDescription("Get autocomplete suggestions based on product names")
+            .WithTags("Search");
+
         // Routes for resolving catalog items using AI.
         v1.MapGet("/items/withsemanticrelevance/{text:minlength(1)}", GetItemsBySemanticRelevanceV1)
             .WithName("GetRelevantItems")
@@ -197,6 +209,74 @@ public static class CatalogApi
         [Description("The name of the item to return")] string name)
     {
         return await GetAllItems(paginationRequest, services, name, null, null);
+    }
+
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    public static async Task<Results<Ok<PaginatedItems<CatalogItem>>, BadRequest<ProblemDetails>>> SearchCatalog(
+        [AsParameters] PaginationRequest paginationRequest,
+        [AsParameters] CatalogServices services,
+        [Description("Search phrase")] string? q,
+        [Description("Filter by category type")] int? type)
+    {
+        // Validate query parameter
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return TypedResults.BadRequest<ProblemDetails>(new()
+            {
+                Detail = "Search query is required."
+            });
+        }
+
+        var pageSize = paginationRequest.PageSize;
+        var pageIndex = paginationRequest.PageIndex;
+
+        var searchTerm = $"%{q}%";
+        var query = services.Context.CatalogItems
+            .Where(c => EF.Functions.ILike(c.Name, searchTerm) ||
+                        EF.Functions.ILike(c.Description ?? "", searchTerm));
+
+        if (type.HasValue)
+        {
+            query = query.Where(c => c.CatalogTypeId == type.Value);
+        }
+
+        var totalItems = await query.LongCountAsync();
+
+        var itemsOnPage = await query
+            .OrderBy(c => c.Name)
+            .Skip(pageSize * pageIndex)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return TypedResults.Ok(new PaginatedItems<CatalogItem>(pageIndex, pageSize, totalItems, itemsOnPage));
+    }
+
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest, "application/problem+json")]
+    public static async Task<Ok<List<SearchSuggestion>>> GetSearchSuggestions(
+        [AsParameters] CatalogServices services,
+        [Description("Search query")] string? q,
+        [Description("Maximum suggestions")] int limit = 5)
+    {
+        // Return empty for short queries (under 2 characters)
+        if (string.IsNullOrWhiteSpace(q) || q.Length < 2)
+        {
+            return TypedResults.Ok(new List<SearchSuggestion>());
+        }
+
+        // Clamp limit to max 10
+        limit = Math.Min(limit, 10);
+
+        var searchTerm = $"%{q}%";
+
+        var suggestions = await services.Context.CatalogItems
+            .Include(c => c.CatalogType)
+            .Where(c => EF.Functions.ILike(c.Name, searchTerm))
+            .OrderBy(c => c.Name)
+            .Take(limit)
+            .Select(c => new SearchSuggestion(c.Id, c.Name, c.CatalogType!.Type))
+            .ToListAsync();
+
+        return TypedResults.Ok(suggestions);
     }
 
     [ProducesResponseType<byte[]>(StatusCodes.Status200OK, "application/octet-stream",

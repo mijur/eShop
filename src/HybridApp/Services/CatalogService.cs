@@ -51,6 +51,24 @@ public class CatalogService(HttpClient httpClient) : ICatalogService
         return result!;
     }
 
+    public async Task<CatalogResult> SearchCatalogItems(string query, int? typeId, int pageIndex, int pageSize)
+    {
+        var uri = $"{remoteServiceBaseUrl}search?q={HttpUtility.UrlEncode(query)}&pageIndex={pageIndex}&pageSize={pageSize}&api-version=2.0";
+        if (typeId.HasValue)
+        {
+            uri += $"&typeId={typeId}";
+        }
+        var result = await httpClient.GetFromJsonAsync(uri, CatalogJsonContext.Default.CatalogResult);
+        return result!;
+    }
+
+    public async Task<IEnumerable<SearchSuggestion>> GetSearchSuggestions(string query, int limit = 8)
+    {
+        var uri = $"{remoteServiceBaseUrl}search/suggestions?q={HttpUtility.UrlEncode(query)}&limit={limit}&api-version=2.0";
+        var result = await httpClient.GetFromJsonAsync(uri, CatalogJsonContext.Default.SearchSuggestionArray);
+        return result ?? [];
+    }
+
     private static string GetAllCatalogItemsUri(string baseUri, int pageIndex, int pageSize, int? brand, int? type)
     {
         string filterQs = string.Empty;

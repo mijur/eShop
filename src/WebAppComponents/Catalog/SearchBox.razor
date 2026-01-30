@@ -1,0 +1,207 @@
+@inject ICatalogService CatalogService
+@inject NavigationManager Nav
+@implements IDisposable
+
+<div class="search-container">
+    <select class="search-category-select" @bind="selectedTypeId">
+        <option value="">All Categories</option>
+        @if (catalogTypes is not null)
+        {
+            @foreach (var type in catalogTypes)
+            {
+                <option value="@type.Id">@type.Type</option>
+            }
+        }
+    </select>
+    <div class="search-input-wrapper">
+        <input type="search"
+               placeholder="Search products..."
+               @bind="searchText"
+               @bind:event="oninput"
+               @bind:after="OnSearchInput"
+               @onkeydown="HandleKeyDown"
+               @onfocus="ShowSuggestions"
+               @onblur="HideSuggestionsDelayed" />
+        <button type="button" class="search-button" @onclick="PerformSearch">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+        </button>
+        @if (showSuggestions && suggestions?.Any() == true)
+        {
+            <div class="search-suggestions">
+                @for (int i = 0; i < suggestions.Count(); i++)
+                {
+                    var suggestion = suggestions.ElementAt(i);
+                    var index = i;
+                    <a class="search-suggestion @(highlightedIndex == index ? "highlighted" : "")"
+                       href="@($"/item/{suggestion.Id}")"
+                       @onmouseenter="() => highlightedIndex = index"
+                       @onmouseleave="() => highlightedIndex = -1">
+                        <span class="suggestion-name">@((MarkupString)HighlightMatch(suggestion.Name))</span>
+                        <span class="suggestion-category">@suggestion.Category</span>
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string? InitialQuery { get; set; }
+
+    [Parameter]
+    public int? InitialTypeId { get; set; }
+
+    private string searchText = "";
+    private string selectedTypeId = "";
+    private bool showSuggestions;
+    private IEnumerable<SearchSuggestion>? suggestions;
+    private IEnumerable<CatalogItemType>? catalogTypes;
+    private CancellationTokenSource? debounceTokenSource;
+    private int highlightedIndex = -1;
+    private const int DebounceMs = 300;
+
+    protected override async Task OnInitializedAsync()
+    {
+        catalogTypes = await CatalogService.GetTypes();
+        
+        if (!string.IsNullOrEmpty(InitialQuery))
+        {
+            searchText = InitialQuery;
+        }
+        if (InitialTypeId.HasValue)
+        {
+            selectedTypeId = InitialTypeId.Value.ToString();
+        }
+    }
+
+    private async Task OnSearchInput()
+    {
+        // Cancel any pending debounce
+        debounceTokenSource?.Cancel();
+        debounceTokenSource = new CancellationTokenSource();
+        var token = debounceTokenSource.Token;
+
+        if (string.IsNullOrWhiteSpace(searchText) || searchText.Length < 2)
+        {
+            suggestions = null;
+            showSuggestions = false;
+            highlightedIndex = -1;
+            return;
+        }
+
+        try
+        {
+            // Debounce delay
+            await Task.Delay(DebounceMs, token);
+            
+            if (token.IsCancellationRequested) return;
+
+            suggestions = await CatalogService.GetSearchSuggestions(searchText, 8);
+            showSuggestions = suggestions?.Any() == true;
+        }
+        catch (TaskCanceledException)
+        {
+            // Debounce cancelled, ignore
+        }
+    }
+
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        switch (e.Key)
+        {
+            case "Enter":
+                if (highlightedIndex >= 0 && suggestions?.Any() == true)
+                {
+                    var suggestion = suggestions.ElementAt(highlightedIndex);
+                    Nav.NavigateTo($"/item/{suggestion.Id}");
+                }
+                else
+                {
+                    PerformSearch();
+                }
+                break;
+            case "Escape":
+                showSuggestions = false;
+                highlightedIndex = -1;
+                break;
+            case "ArrowDown":
+                if (suggestions?.Any() == true)
+                {
+                    highlightedIndex = Math.Min(highlightedIndex + 1, suggestions.Count() - 1);
+                }
+                break;
+            case "ArrowUp":
+                if (suggestions?.Any() == true)
+                {
+                    highlightedIndex = Math.Max(highlightedIndex - 1, 0);
+                }
+                break;
+        }
+    }
+
+    private void PerformSearch()
+    {
+        showSuggestions = false;
+        highlightedIndex = -1;
+        
+        var queryParams = new Dictionary<string, object?>
+        {
+            { "q", string.IsNullOrWhiteSpace(searchText) ? null : searchText },
+            { "page", null }
+        };
+
+        if (!string.IsNullOrEmpty(selectedTypeId) && int.TryParse(selectedTypeId, out var typeId))
+        {
+            queryParams["type"] = typeId;
+        }
+        else
+        {
+            queryParams["type"] = null;
+        }
+
+        var uri = Nav.GetUriWithQueryParameters("/", queryParams);
+        Nav.NavigateTo(uri);
+    }
+
+    private void ShowSuggestions()
+    {
+        if (suggestions?.Any() == true)
+        {
+            showSuggestions = true;
+        }
+    }
+
+    private async Task HideSuggestionsDelayed()
+    {
+        // Small delay to allow click on suggestion to register
+        await Task.Delay(200);
+        showSuggestions = false;
+        highlightedIndex = -1;
+    }
+
+    private string HighlightMatch(string text)
+    {
+        if (string.IsNullOrEmpty(searchText) || string.IsNullOrEmpty(text))
+            return System.Web.HttpUtility.HtmlEncode(text);
+
+        var index = text.IndexOf(searchText, StringComparison.OrdinalIgnoreCase);
+        if (index < 0)
+            return System.Web.HttpUtility.HtmlEncode(text);
+
+        var before = System.Web.HttpUtility.HtmlEncode(text[..index]);
+        var match = System.Web.HttpUtility.HtmlEncode(text.Substring(index, searchText.Length));
+        var after = System.Web.HttpUtility.HtmlEncode(text[(index + searchText.Length)..]);
+
+        return $"{before}<strong>{match}</strong>{after}";
+    }
+
+    public void Dispose()
+    {
+        debounceTokenSource?.Cancel();
+        debounceTokenSource?.Dispose();
+    }
+}

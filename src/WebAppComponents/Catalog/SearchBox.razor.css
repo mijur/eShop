@@ -1,0 +1,128 @@
+.search-container {
+    display: flex;
+    width: 100%;
+    max-width: 700px;
+    border: 1px solid #000;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background: #FFF;
+}
+
+.search-category-select {
+    border: none;
+    border-right: 1px solid #D2D2D2;
+    padding: 0.75rem 1rem;
+    background: #F7F7F7;
+    min-width: 150px;
+    font-size: 1rem;
+    color: #000;
+    cursor: pointer;
+}
+
+.search-category-select:focus {
+    outline: none;
+}
+
+.search-input-wrapper {
+    position: relative;
+    flex: 1;
+    display: flex;
+}
+
+.search-input-wrapper input {
+    flex: 1;
+    border: none;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    min-width: 0;
+}
+
+.search-input-wrapper input:focus {
+    outline: none;
+}
+
+.search-input-wrapper input::placeholder {
+    color: #404040;
+}
+
+.search-button {
+    background: #000;
+    color: #FFF;
+    border: none;
+    padding: 0.75rem 1.25rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.search-button:hover {
+    background: #333;
+}
+
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #FFF;
+    border: 1px solid #D2D2D2;
+    border-top: none;
+    z-index: 100;
+    max-height: 300px;
+    overflow-y: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-suggestion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    color: #000;
+    cursor: pointer;
+}
+
+.search-suggestion:hover,
+.search-suggestion.highlighted {
+    background: #F7F7F7;
+}
+
+.suggestion-name {
+    flex: 1;
+}
+
+.suggestion-name strong {
+    font-weight: 700;
+}
+
+.suggestion-category {
+    color: #404040;
+    font-size: 0.875rem;
+    margin-left: 1rem;
+}
+
+/* Mobile styles */
+@media only screen and (max-width: 480px) {
+    .search-container {
+        flex-direction: column;
+        border-radius: 0;
+    }
+
+    .search-category-select {
+        display: none;
+    }
+
+    .search-input-wrapper {
+        border-top: none;
+    }
+}
+
+/* Tablet styles */
+@media only screen and (min-width: 481px) and (max-width: 1024px) {
+    .search-category-select {
+        min-width: 120px;
+        padding: 0.75rem 0.5rem;
+    }
+}

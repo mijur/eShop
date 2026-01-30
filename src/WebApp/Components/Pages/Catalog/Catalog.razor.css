@@ -1,4 +1,17 @@
-﻿.catalog {
+﻿.search-section {
+    padding: 2rem 10rem;
+    display: flex;
+    justify-content: center;
+}
+
+.no-results {
+    flex: 1;
+    text-align: center;
+    padding: 2rem;
+    color: #404040;
+}
+
+.catalog {
     padding: 0 10rem;
     display: flex;
     gap: 6rem;
@@ -117,6 +130,10 @@
 
 
 @media only screen and (max-width: 480px) { 
+    .search-section {
+        padding: 1rem;
+    }
+
     .catalog {
         padding: 0 1rem;
         flex-direction: column;
@@ -129,6 +146,10 @@
 }
 
 @media only screen and (min-width: 481px) and (max-width: 1024px) { 
+    .search-section {
+        padding: 1.5rem 3rem;
+    }
+
     .catalog {
         padding: 0 3rem;
         flex-direction: column;

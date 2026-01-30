@@ -8,7 +8,7 @@ namespace eShop.WebApp.Services;
 
 public class BasketState(
     BasketService basketService,
-    CatalogService catalogService,
+    ICatalogService catalogService,
     OrderingService orderingService,
     AuthenticationStateProvider authenticationStateProvider) : IBasketState
 {
