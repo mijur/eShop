@@ -34,7 +34,8 @@ redis.WithParentRelationship(basketApi);
 
 var catalogApi = builder.AddProject<Projects.Catalog_API>("catalog-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
-    .WithReference(catalogDb);
+    .WithReference(catalogDb)
+    .WithEnvironment("Identity__Url", identityEndpoint);
 
 var orderingApi = builder.AddProject<Projects.Ordering_API>("ordering-api")
     .WithReference(rabbitMq).WaitFor(rabbitMq)
@@ -93,6 +94,7 @@ webhooksClient.WithEnvironment("CallBackUrl", webhooksClient.GetEndpoint(launchP
 
 // Identity has a reference to all of the apps for callback urls, this is a cyclic reference
 identityApi.WithEnvironment("BasketApiClient", basketApi.GetEndpoint("http"))
+           .WithEnvironment("CatalogApiClient", catalogApi.GetEndpoint("http"))
            .WithEnvironment("OrderingApiClient", orderingApi.GetEndpoint("http"))
            .WithEnvironment("WebhooksApiClient", webHooksApi.GetEndpoint("http"))
            .WithEnvironment("WebhooksWebClient", webhooksClient.GetEndpoint(launchProfileName))

@@ -9,6 +9,7 @@
             {
                 new ApiResource("orders", "Orders Service"),
                 new ApiResource("basket", "Basket Service"),
+                new ApiResource("catalog", "Catalog Service"),
                 new ApiResource("webhooks", "Webhooks registration Service"),
             };
         }
@@ -21,6 +22,7 @@
             {
                 new ApiScope("orders", "Orders Service"),
                 new ApiScope("basket", "Basket Service"),
+                new ApiScope("catalog", "Catalog Service"),
                 new ApiScope("webhooks", "Webhooks registration Service"),
             };
         }
@@ -154,6 +156,21 @@
                     AllowedScopes =
                     {
                         "basket"
+                    }
+                },
+                new Client
+                {
+                    ClientId = "catalogswaggerui",
+                    ClientName = "Catalog Swagger UI",
+                    AllowedGrantTypes = GrantTypes.Implicit,
+                    AllowAccessTokensViaBrowser = true,
+
+                    RedirectUris = { $"{configuration["CatalogApiClient"]}/scalar/v1" },
+                    PostLogoutRedirectUris = { $"{configuration["CatalogApiClient"]}/scalar/v1/" },
+
+                    AllowedScopes =
+                    {
+                        "catalog"
                     }
                 },
                 new Client

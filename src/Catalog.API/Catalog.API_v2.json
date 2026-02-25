@@ -724,17 +724,8 @@
                 }
               }
             }
-          },
-          "401": {
-            "description": "Unauthorized"
-          },
-          "403": {
-            "description": "Forbidden"
           }
-        },
-        "security": [
-          { }
-        ]
+        }
       },
       "get": {
         "tags": [
