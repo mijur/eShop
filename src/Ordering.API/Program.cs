@@ -17,5 +17,9 @@ var orders = app.NewVersionedApi("Orders");
 orders.MapOrdersApiV1()
       .RequireAuthorization();
 
+var reviews = app.NewVersionedApi("Reviews");
+reviews.MapReviewsApiV1()
+       .RequireAuthorization();
+
 app.UseDefaultOpenApi();
 app.Run();
