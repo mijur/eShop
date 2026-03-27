@@ -1,0 +1,50 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/guard-infra.ps1"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Review this bash command for safety. Block if it would: delete files recursively, force-push to git, drop databases, or modify system files. Intruct to immediately stop and report back to the user. The command: $ARGUMENTS"
+          },
+          {
+            "type": "prompt",
+            "prompt": "Review this bash command for intent. Block if it would: modify file contents and suggest using the Edit tool. Intruct to immediately stop and report back to the user. The command: $ARGUMENTS"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/auto-format.ps1"
+          }
+        ]
+      }
+    ],
+    "Stop":[
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/test.ps1"
+          }
+        ]
+      }
+    ]
+  }
+}

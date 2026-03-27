@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Important Instructions
+
+- **Fully honor any blocks coming from tool hooks** — when tool hooks provide structured information or guidance blocks, follow their instructions precisely and completely. Do not try to override or ignore them. They are there to ensure you produce code that fits the project's standards and patterns.
+
 ## What This Is
 
 eShop is a .NET reference application demonstrating microservices architecture using .NET Aspire for orchestration. It includes multiple web APIs, background workers, frontend apps, and shared libraries.

@@ -1,5 +1,3 @@
-# CLAUDE.md — Ordering.API
-
 ## Overview
 
 Ordering.API is the order management microservice in the eShop application. It implements **CQRS**, **Domain-Driven Design (DDD)**, and **event-driven architecture** with MediatR, FluentValidation, and RabbitMQ integration events.
@@ -36,25 +34,6 @@ src/Ordering.API/
 |---------|------|
 | `Ordering.Domain` | DDD domain model: aggregates (Order, Buyer), value objects (Address), domain events, repository interfaces |
 | `Ordering.Infrastructure` | EF Core DbContext (OrderingContext), repository implementations, entity configurations, migrations, idempotency (RequestManager) |
-
-## Build & Run
-
-```bash
-# Build just Ordering.API
-dotnet build src/Ordering.API/
-
-# Run via Aspire (starts all dependencies)
-dotnet run --project src/eShop.AppHost/eShop.AppHost.csproj
-
-# Run unit tests
-dotnet test tests/Ordering.UnitTests/
-
-# Run specific test
-dotnet test tests/Ordering.UnitTests/ --filter "FullyQualifiedName~OrderAggregateTest"
-
-# Run functional tests (requires Docker)
-dotnet test tests/Ordering.FunctionalTests/
-```
 
 ## API Endpoints
 

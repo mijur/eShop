@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet test:*)",
+      "Skill(adr)",
+      "Bash(bash C:/Users/mlj/Source/AiToolLab/Agents2/eShop/.claude/skills/adr/scripts/validate-adr.sh docs/adr/0001-integration-events-for-ordering-webhooks-communication.md)",
+      "Bash(chmod:*)",
+      "WebSearch",
+      "Bash(claude --debug hooks --print \"test\")"
+    ]
+  }
+}
