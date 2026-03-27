@@ -6,7 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/guard-infra.ps1"
+            "shell": "powershell",
+            "command": ".claude/hooks/guard-infra.ps1"
           }
         ]
       },
@@ -30,7 +31,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/auto-format.ps1"
+            "shell": "powershell",
+            "command": ".claude/hooks/auto-format.ps1"
           }
         ]
       }
@@ -41,7 +43,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -ExecutionPolicy Bypass -File .claude/hooks/test.ps1"
+            "shell": "powershell",
+            "command": ".claude/hooks/test.ps1"
           }
         ]
       }
